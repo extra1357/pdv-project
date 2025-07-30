@@ -1,0 +1,16 @@
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\controller\ProdutoController.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\controller\VendaController.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\dto\ItemVendaRequestDTO.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\dto\VendaRequestDTO.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\enums\FormaPagamento.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\exceptions\EstoqueInsuficienteException.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\exceptions\RecursoNaoEncontradoException.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\model\ItemVendaModel.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\model\ProdutoModel.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\model\VendaModel.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\PdvbackendApplication.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\repository\ItemVendaRepository.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\repository\ProdutoRepository.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\repository\VendaRepository.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\service\ProdutoService.java
+C:\pdv-project\pdv-backend-java\src\main\java\com\pdv\pdvbackend\service\VendaService.java
