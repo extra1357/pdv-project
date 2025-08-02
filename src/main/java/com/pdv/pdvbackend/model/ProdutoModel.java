@@ -1,35 +1,70 @@
 package com.pdv.pdvbackend.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "produtos") // Nome da tabela no banco de dados
-@Data // Gera getters, setters, toString, equals e hashCode do Lombok
-@NoArgsConstructor // Gera construtor sem argumentos do Lombok
-@AllArgsConstructor // Gera construtor com todos os argumentos do Lombok
+@Table(name = "produtos")
 public class ProdutoModel {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-incremento
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false, unique = true, length = 100)
     private String nome;
-
-    @Column(nullable = false, precision = 10, scale = 2) // Precisão de 10 dígitos no total, 2 após a vírgula
     private BigDecimal precoVenda;
-
-    @Column(unique = true, length = 20) // Ex: Código de barras (EAN-13)
+    private Integer estoque;
     private String codigoBarras;
-
-    @Column(unique = true, length = 50) // SKU (Stock Keeping Unit)
     private String sku;
 
-    @Column(nullable = false)
-    private Integer estoque; // Quantidade em estoque
+    // Construtor padrão
+    public ProdutoModel() {
+    }
+
+    // Getters e Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public BigDecimal getPrecoVenda() {
+        return precoVenda;
+    }
+
+    public void setPrecoVenda(BigDecimal precoVenda) {
+        this.precoVenda = precoVenda;
+    }
+
+    public Integer getEstoque() {
+        return estoque;
+    }
+
+    public void setEstoque(Integer estoque) {
+        this.estoque = estoque;
+    }
+
+    public String getCodigoBarras() {
+        return codigoBarras;
+    }
+
+    public void setCodigoBarras(String codigoBarras) {
+        this.codigoBarras = codigoBarras;
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
+    }
 }

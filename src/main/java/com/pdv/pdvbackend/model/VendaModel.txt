@@ -1,0 +1,43 @@
+package com.pdv.pdvbackend.model;
+
+import com.pdv.pdvbackend.model.VendaItemModel;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Entity
+@Table(name = "venda")
+@Getter
+@Setter
+public class VendaModel {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private LocalDateTime dataVenda;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal valorTotal;
+
+    @Column(columnDefinition = "TEXT")
+    private String observacoes;
+
+    @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VendaItemModel> itens;
+
+    @PrePersist
+    @PreUpdate
+    public void calcularValorTotal() {
+        if (this.itens != null) {
+            this.valorTotal = this.itens.stream()
+                    .map(item -> item.getPrecoUnitario().multiply(new BigDecimal(item.getQuantidade())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        } else {
+            this.valorTotal = BigDecimal.ZERO;
+        }
+    }
+}

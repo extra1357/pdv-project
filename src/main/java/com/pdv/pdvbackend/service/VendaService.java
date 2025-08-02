@@ -1,22 +1,19 @@
 package com.pdv.pdvbackend.service;
 
 import com.pdv.pdvbackend.dto.VendaRequestDTO;
-import com.pdv.pdvbackend.exceptions.EstoqueInsuficienteException;
-import com.pdv.pdvbackend.exceptions.RecursoNaoEncontradoException;
-import com.pdv.pdvbackend.model.ItemVendaModel;
-import com.pdv.pdvbackend.model.ProdutoModel;
 import com.pdv.pdvbackend.model.VendaModel;
-import com.pdv.pdvbackend.repository.ItemVendaRepository;
-import com.pdv.pdvbackend.repository.ProdutoRepository;
+import com.pdv.pdvbackend.model.ProdutoModel;
+import com.pdv.pdvbackend.model.VendaItemModel;
 import com.pdv.pdvbackend.repository.VendaRepository;
-import jakarta.transaction.Transactional;
+import com.pdv.pdvbackend.repository.ProdutoRepository;
+import com.pdv.pdvbackend.repository.ItemVendaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class VendaService {
@@ -33,43 +30,34 @@ public class VendaService {
     @Transactional
     public VendaModel criarVenda(VendaRequestDTO request) {
         VendaModel venda = new VendaModel();
-        venda.setDataHora(LocalDateTime.now());
+        venda.setDataVenda(LocalDateTime.now());
         venda.setObservacoes(request.getObservacoes());
-        venda.setItens(new ArrayList<>());
 
-        BigDecimal totalVenda = BigDecimal.ZERO;
-
-        for (VendaRequestDTO.ItemVendaRequestDTO itemRequest : request.getItens()) {
+        List<VendaItemModel> itensVenda = request.getItens().stream().map(itemRequest -> {
             ProdutoModel produto = produtoRepository.findById(itemRequest.getProdutoId())
-                    .orElseThrow(() -> new RecursoNaoEncontradoException("Produto com ID " + itemRequest.getProdutoId() + " não encontrado."));
+                    .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado com o ID: " + itemRequest.getProdutoId()));
 
             if (produto.getEstoque() < itemRequest.getQuantidade()) {
-                throw new EstoqueInsuficienteException(
-                        "Estoque insuficiente para o produto " + produto.getNome() + ". Estoque atual: " + produto.getEstoque()
-                );
+                throw new IllegalArgumentException("Estoque insuficiente para o produto: " + produto.getNome());
             }
 
-            // Atualiza o estoque
+            VendaItemModel vendaItem = new VendaItemModel();
+            vendaItem.setVenda(venda);
+            vendaItem.setProduto(produto);
+            vendaItem.setQuantidade(itemRequest.getQuantidade());
+            vendaItem.setPrecoUnitario(produto.getPrecoVenda());
+
+            // Atualiza o estoque do produto
             produto.setEstoque(produto.getEstoque() - itemRequest.getQuantidade());
             produtoRepository.save(produto);
 
-            ItemVendaModel itemVenda = new ItemVendaModel();
-            itemVenda.setProduto(produto);
-            itemVenda.setQuantidade(itemRequest.getQuantidade());
-            itemVenda.setPrecoUnitario(produto.getPrecoVenda());
-            itemVenda.setPrecoTotalItem(produto.getPrecoVenda().multiply(BigDecimal.valueOf(itemRequest.getQuantidade())));
-            itemVenda.setVenda(venda);
-            venda.getItens().add(itemVenda);
+            return vendaItem;
+        }).collect(Collectors.toList());
 
-            totalVenda = totalVenda.add(itemVenda.getPrecoTotalItem());
-        }
-
-        venda.setTotalVenda(totalVenda);
-
-        VendaModel vendaSalva = vendaRepository.save(venda);
-        itemVendaRepository.saveAll(vendaSalva.getItens());
-
-        return vendaSalva;
+        venda.setItens(itensVenda);
+        venda.calcularValorTotal();
+        vendaRepository.save(venda);
+        return venda;
     }
 
     public List<VendaModel> listarVendas() {

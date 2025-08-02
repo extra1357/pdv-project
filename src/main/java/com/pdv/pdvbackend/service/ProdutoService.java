@@ -1,61 +1,67 @@
 package com.pdv.pdvbackend.service;
 
-import com.pdv.pdvbackend.model.ProdutoModel; // ALTERADO: Deve ser ProdutoModel
+import com.pdv.pdvbackend.dto.ProdutoResponseDTO;
+import com.pdv.pdvbackend.exceptions.CustomNotFoundException;
+import com.pdv.pdvbackend.model.ProdutoModel;
 import com.pdv.pdvbackend.repository.ProdutoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
-@Service // Indica que esta classe é um componente de serviço gerenciado pelo Spring
+@Service
 public class ProdutoService {
 
-    @Autowired // Injeta uma instância de ProdutoRepository
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
-    // Método para listar todos os produtos
-    public List<ProdutoModel> listarTodosProdutos() { // ALTERADO: Tipo de retorno ProdutoModel
-        return produtoRepository.findAll();
+    public ProdutoService(ProdutoRepository produtoRepository) {
+        this.produtoRepository = produtoRepository;
     }
 
-    // Método para buscar um produto por ID
-    public Optional<ProdutoModel> buscarProdutoPorId(Long id) { // ALTERADO: Tipo de retorno ProdutoModel
-        return produtoRepository.findById(id);
+    public List<ProdutoResponseDTO> listarProdutos() {
+        return produtoRepository.findAll()
+                .stream()
+                .map(this::mapearParaProdutoResponseDTO)
+                .collect(Collectors.toList());
     }
 
-    // Método para salvar um novo produto ou atualizar um existente
-    public ProdutoModel salvarProduto(ProdutoModel produto) { // ALTERADO: Parâmetro e tipo de retorno ProdutoModel
-        return produtoRepository.save(produto);
+    public ProdutoResponseDTO salvarProduto(ProdutoResponseDTO produtoDTO) {
+        ProdutoModel produto = new ProdutoModel();
+        produto.setNome(produtoDTO.getNome());
+        produto.setPrecoVenda(produtoDTO.getPrecoVenda());
+        produto.setEstoque(produtoDTO.getEstoque());
+        produto.setCodigoBarras(produtoDTO.getCodigoBarras());
+        produto.setSku(produtoDTO.getSku());
+        ProdutoModel produtoSalvo = produtoRepository.save(produto);
+        return mapearParaProdutoResponseDTO(produtoSalvo);
     }
-
-    // Método para deletar um produto por ID
+    
     public void deletarProduto(Long id) {
-        // É uma boa prática verificar se o produto existe antes de tentar deletar
         if (!produtoRepository.existsById(id)) {
-            throw new IllegalArgumentException("Produto com ID " + id + " não encontrado para deleção.");
+            throw new CustomNotFoundException("Produto não encontrado.");
         }
         produtoRepository.deleteById(id);
     }
 
-    // Método para atualizar um produto existente
-    public ProdutoModel atualizarProduto(Long id, ProdutoModel produtoAtualizado) { // ALTERADO: Parâmetro e tipo de retorno ProdutoModel
-        // Verifica se o produto existe antes de atualizar
-        return produtoRepository.findById(id)
-                .map(produtoExistente -> {
-                    produtoExistente.setNome(produtoAtualizado.getNome());
-                    produtoExistente.setPrecoVenda(produtoAtualizado.getPrecoVenda()); // ALTERADO: Usar setPrecoVenda()
-                    produtoExistente.setEstoque(produtoAtualizado.getEstoque());     // ALTERADO: Usar setEstoque()
-                    produtoExistente.setCodigoBarras(produtoAtualizado.getCodigoBarras()); // Adicionado (se houver no DTO)
-                    produtoExistente.setSku(produtoAtualizado.getSku()); // Adicionado (se houver no DTO)
-                    return produtoRepository.save(produtoExistente);
-                })
-                .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado com ID: " + id)); // Lança exceção se não encontrar
+    public ProdutoResponseDTO buscarProdutoPorId(Long id) {
+        ProdutoModel produto = produtoRepository.findById(id)
+                .orElseThrow(() -> new CustomNotFoundException("Produto não encontrado com o ID: " + id));
+        return mapearParaProdutoResponseDTO(produto);
     }
 
-    // Se você tiver um método para busca por termo (para o PDV)
-    // public List<ProdutoModel> buscarProdutosPorTermo(String termo) {
-    //     // Implemente a lógica de busca aqui
-    //     return produtoRepository.findByNomeContainingIgnoreCase(termo); // Exemplo
-    // }
+    public ProdutoResponseDTO buscarPorCodigoBarras(String codigoBarras) {
+        ProdutoModel produto = produtoRepository.findByCodigoBarras(codigoBarras)
+                .orElseThrow(() -> new CustomNotFoundException("Produto não encontrado com o código de barras: " + codigoBarras));
+        return mapearParaProdutoResponseDTO(produto);
+    }
+
+    private ProdutoResponseDTO mapearParaProdutoResponseDTO(ProdutoModel produto) {
+        ProdutoResponseDTO dto = new ProdutoResponseDTO(produto);
+        dto.setId(produto.getId());
+        dto.setNome(produto.getNome());
+        dto.setPrecoVenda(produto.getPrecoVenda());
+        dto.setEstoque(produto.getEstoque());
+        dto.setCodigoBarras(produto.getCodigoBarras());
+        dto.setSku(produto.getSku());
+        return dto;
+    }
 }
